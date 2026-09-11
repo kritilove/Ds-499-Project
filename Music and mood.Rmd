@@ -1,0 +1,61 @@
+---
+title: "Music and mood"
+author: "Akriti Acharya"
+date: "2026-09-8"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(dplyr)
+library(readr)
+
+```
+
+
+# Intro: 
+
+For my project, I’m using the mxmh survey dataset, which has 736 responses and 
+33 columns. The data includes things like age, favorite genre, hours spent listening to music each day, and whether people listen while working. It also 
+has mental health information such as anxiety, depression, insomnia, and OCD scores, plus whether people feel music improves, worsens, or has no effect on their mood.
+
+This dataset is useful because it connects music habits with mental health and focus. That means I can look at questions like: do certain genres (like lo‑fi,
+pop, or rap) relate to lower anxiety? Does listening while working help people focus? Or does the tempo (BPM) of music make a difference in how people feel?
+
+The goal of my exploratory data analysis (EDA) is to get familiar with the
+dataset, check patterns, and see what stands out. By looking at summaries, 
+counts, and simple graphs, I’ll be able to understand the data better and
+decide which research question makes the most sense to focus on.
+
+# Looking at the data
+
+```{r}
+mxmh_survey_results <- read_csv("mxmh_survey_results.csv")
+```
+```{r}
+# Look at the first few rows
+
+head(mxmh_survey_results)
+
+# Column names
+names(mxmh_survey_results)
+
+# Summary statistics
+summary(mxmh_survey_results)
+
+# Genre counts
+table(mxmh_survey_results$`Fav genre`)
+```
+
+#Check for any missing values
+```{r}
+colSums(is.na(mxmh_survey_results))
+```
+#Getting rid of rows with missing ages
+```{r}
+mxmh_survey_results <- mxmh_survey_results%>%
+  filter(!is.na(Age))
+```
+
