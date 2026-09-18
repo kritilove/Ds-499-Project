@@ -24,10 +24,6 @@ has mental health information such as anxiety, depression, insomnia, and OCD sco
 This dataset is useful because it connects music habits with mental health and focus. That means I can look at questions like: do certain genres (like lo‑fi,
 pop, or rap) relate to lower anxiety? Does listening while working help people focus? Or does the tempo (BPM) of music make a difference in how people feel?
 
-The goal of my exploratory data analysis (EDA) is to get familiar with the
-dataset, check patterns, and see what stands out. By looking at summaries, 
-counts, and simple graphs, I’ll be able to understand the data better and
-decide which research question makes the most sense to focus on.
 
 # Looking at the data
 
@@ -35,7 +31,7 @@ decide which research question makes the most sense to focus on.
 mxmh_survey_results <- read_csv("mxmh_survey_results.csv")
 ```
 ```{r}
-# Look at the first few rows
+# Looking at the first few rows
 
 head(mxmh_survey_results)
 
@@ -53,9 +49,44 @@ table(mxmh_survey_results$`Fav genre`)
 ```{r}
 colSums(is.na(mxmh_survey_results))
 ```
-#Getting rid of rows with missing ages
+#Summary stats for quantative variable
 ```{r}
-mxmh_survey_results <- mxmh_survey_results%>%
-  filter(!is.na(Age))
+summary(mxmh_survey_results[, c("Age", "Hours per day", "BPM", 
+                                "Anxiety", "Depression", "Insomnia", "OCD")])
+```
+
+
+#Cleaning outliers
+```{r}
+mxmh_survey_results <- mxmh_survey_results %>%
+  filter(BPM < 300 | is.na(BPM))
+```
+
+
+# Distribution of Favorite Genres
+
+```{r}
+library(ggplot2)
+
+ggplot(mxmh_survey_results, aes(x = `Fav genre`)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Counts of Favorite Genres",
+       x = "Genre",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# Average Anxiety Score by Genre
+
+```{r}
+mxmh_survey_results %>%
+  group_by(`Fav genre`) %>%
+  summarise(mean_anxiety = mean(Anxiety, na.rm = TRUE)) %>%
+  ggplot(aes(x = `Fav genre`, y = mean_anxiety)) +
+  geom_col(fill = "purple") +
+  labs(title = "Average Anxiety Score by Genre",
+       x = "Genre",
+       y = "Mean Anxiety") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
