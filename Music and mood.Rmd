@@ -9,8 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
-library(dplyr)
-library(readr)
+library(tidyverse)
 
 ```
 
@@ -43,6 +42,21 @@ summary(mxmh_survey_results)
 
 # Genre counts
 table(mxmh_survey_results$`Fav genre`)
+
+ggplot(mxmh_survey_results,aes(x=BPM))+ 
+  geom_boxplot()
+
+```
+
+```{r}
+mxmh_survey_results %>%
+  filter(BPM>1000)
+
+is.na(mxmh_survey_results$BPM)<- mxmh_survey_results$BPM > 1000
+```
+```{r}
+ggplot(mxmh_survey_results,aes(x=BPM))+ 
+  geom_boxplot()
 ```
 
 #Check for any missing values
@@ -53,13 +67,6 @@ colSums(is.na(mxmh_survey_results))
 ```{r}
 summary(mxmh_survey_results[, c("Age", "Hours per day", "BPM", 
                                 "Anxiety", "Depression", "Insomnia", "OCD")])
-```
-
-
-#Cleaning outliers
-```{r}
-mxmh_survey_results <- mxmh_survey_results %>%
-  filter(BPM < 300 | is.na(BPM))
 ```
 
 
@@ -75,6 +82,8 @@ ggplot(mxmh_survey_results, aes(x = `Fav genre`)) +
        y = "Count") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+We can see that rock is the most common favorite genre, followed by Pop and Metal, while Gospel and Latin have the fewest responses.This shows which genres are most popular in the dataset.
+
 
 # Average Anxiety Score by Genre
 
@@ -90,3 +99,27 @@ mxmh_survey_results %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+# Depression by Genre 
+```{r}
+mxmh_survey_results %>%
+  group_by(`Fav genre`) %>%
+  summarise(mean_depression = mean(Depression, na.rm = TRUE)) %>%
+  ggplot(aes(x = `Fav genre`, y = mean_depression)) +
+  geom_col(fill = "darkred") +
+  labs(title = "Average Depression Score by Genre",
+       x = "Genre",
+       y = "Mean Depression") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+This chart shows that lo‑fi, hip hop, and EDM listeners report higher average depression scores, while gospel and Latin listeners report the lowest. It suggests certain genres may be linked with higher or lower depression levels.
+
+
+#Music effects bar chart
+```{r}
+ggplot(mxmh_survey_results, aes(x = `Music effects`)) +
+  geom_bar(fill = "forestgreen") +
+  labs(title = "Music Effects on Mood",
+       x = "Effect",
+       y = "Count")
+```
+Looking at the chart, most participants said music improves their mood, with far fewer reporting no effect or worsened mood. This indicates that overall, music is strongly associated with positive emotional wellbeing.
