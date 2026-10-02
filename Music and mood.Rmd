@@ -14,7 +14,7 @@ library(tidyverse)
 ```
 
 
-# Intro: 
+# Introduction: 
 
 For my project, I’m using the mxmh survey dataset, which has 736 responses and 
 33 columns. The data includes things like age, favorite genre, hours spent listening to music each day, and whether people listen while working. It also 
@@ -22,6 +22,21 @@ has mental health information such as anxiety, depression, insomnia, and OCD sco
 
 This dataset is useful because it connects music habits with mental health and focus. That means I can look at questions like: do certain genres (like lo‑fi,
 pop, or rap) relate to lower anxiety? Does listening while working help people focus? Or does the tempo (BPM) of music make a difference in how people feel?
+
+#Background
+
+Music and Emotional Regulation
+
+Music engages brain reward pathways, releasing dopamine and reducing stress and anxiety. As the Healthline article explains, listening to preferred music can boost motivation and pleasure, though certain genres may reinforce depressive moods when listeners are already vulnerable. This dual effect highlights the complexity of music’s role in mental health.
+
+Cognition, Identity, and Clinical Applications
+
+The Home Monitor on Psychology article emphasizes music’s role in cognition and identity. Research shows that self‑selected music strongly activates reward circuits tied to personal values, explaining its deep emotional impact. Clinical applications include neurologic music therapy, which has been used to restore speech and movement in patients with brain injuries. Studies also show music can regulate memory, imagination, and cultural identity, making it a powerful tool for psychological health.
+
+Connection to my project
+
+Together, these sources demonstrate that music can reduce anxiety and depression but may also reinforce negative states depending on genre and listener context. This aligns with your survey data: genres like Lofi and Hip hop show higher depression scores, while Gospel and Latin remain low. By combining these findings with your visuals, the project highlights how musical preferences intersect with mental health.
+
 
 
 # Looking at the data
@@ -99,6 +114,8 @@ mxmh_survey_results %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+ Folk listeners reported the highest average anxiety scores, while Latin listeners reported the lowest. This suggests that certain genres may be linked with higher or lower levels of anxiety.
+
 # Depression by Genre 
 ```{r}
 mxmh_survey_results %>%
@@ -111,15 +128,79 @@ mxmh_survey_results %>%
        y = "Mean Depression") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-This chart shows that lo‑fi, hip hop, and EDM listeners report higher average depression scores, while gospel and Latin listeners report the lowest. It suggests certain genres may be linked with higher or lower depression levels.
+This chart shows that lo‑fi, hip hop, and EDM(electronic dance music) listeners report higher average depression scores, while gospel and Latin music  listeners report the lowest. The chart suggests certain genres may be linked with higher or lower depression levels.
 
 
 #Music effects bar chart
 ```{r}
 ggplot(mxmh_survey_results, aes(x = `Music effects`)) +
-  geom_bar(fill = "forestgreen") +
+  geom_bar(fill = "darkgreen") +
   labs(title = "Music Effects on Mood",
        x = "Effect",
        y = "Count")
 ```
 Looking at the chart, most participants said music improves their mood, with far fewer reporting no effect or worsened mood. This indicates that overall, music is strongly associated with positive emotional wellbeing.
+
+
+# Using median instead of mean for the visuals (above)
+
+Anxiety by genre (using meadian)
+```{r}
+mxmh_survey_results %>%
+  group_by(`Fav genre`) %>%
+  summarise(median_anxiety = median(Anxiety, na.rm = TRUE)) %>%
+  ggplot(aes(x = `Fav genre`, y = median_anxiety)) +
+  geom_col(fill = "purple") +
+  labs(title = "Median Anxiety Score by Genre",
+       x = "Genre",
+       y = "Median Anxiety") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Using the median instead of the mean gives a clearer picture of the typical listener’s anxiety level, since it reduces the influence of extreme outliers. Compared to the mean chart, small differences appear: genres like K‑pop and Lofi show higher median anxiety than their mean suggested, while Rap shows lower. This indicates that outliers were affecting the averages, and the median provides a more reliable summary of how anxiety varies across genres.
+
+
+
+
+
+#Depression by genre (using median)
+```{r}
+mxmh_survey_results %>%
+  group_by(`Fav genre`) %>%
+  summarise(median_depression = median(Depression, na.rm = TRUE)) %>%
+  ggplot(aes(x = `Fav genre`, y = median_depression)) +
+  geom_col(fill = "darkred") +
+  labs(title = "Median Depression Score by Genre",
+       x = "Genre",
+       y = "Median Depression") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Switching from mean to median highlights some differences in how genres compare. Lofi and Hip hop listeners show the highest median depression scores, while Gospel and Latin remain the lowest. Compared to the mean chart, the median reveals that extreme values were influencing averages, and the median provides a more representative summary of typical scores across genres.
+
+
+#Anxiety vs Depression by Genre (using median)
+```{r}
+mxmh_survey_results %>%
+  group_by(`Fav genre`) %>%
+  summarise(
+    median_anxiety = median(Anxiety, na.rm = TRUE),
+    median_depression = median(Depression, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = c(median_anxiety, median_depression),
+               names_to = "Measure",
+               values_to = "Score") %>%
+  ggplot(aes(x = `Fav genre`, y = Score, fill = Measure)) +
+  geom_col(position ="dodge" ) +
+  labs(title = "Median Anxiety vs. Depression Score by Genre",
+       x = "Genre",
+       y = "Median Score") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+This chart compares median anxiety and depression scores side by side for each genre. It shows that some genres, like Lofi and Hip hop, have high median scores for both measures, while Gospel and Latin remain consistently low. Looking at both together highlights which genres are linked with higher or lower levels of mental health concerns, and using the median ensures the results are more representative of typical listeners rather than being skewed by outliers.
+
+
+
+
