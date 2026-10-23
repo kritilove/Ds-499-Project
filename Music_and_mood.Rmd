@@ -123,7 +123,6 @@ mxmh_survey_results %>%
 This chart shows that lo‑fi, hip hop, and EDM(electronic dance music) listeners report higher average depression scores, while gospel and Latin music  listeners report the lowest. The chart suggests certain genres may be linked with higher or lower depression levels.
 
 
-
 # Using median instead of mean for the visuals 
 
 Anxiety by genre (using meadian)
@@ -196,6 +195,15 @@ ggplot(mxmh_survey_results, aes(y = `Hours per day`)) +
 The distribution is right‑skewed, with most participants listening between 1–5 hours daily and a clear peak around 2–3 hours. 
 The boxplot shows the interquartile range centered in this range, with the median near 3 hours. Several extreme outliers appear above 10 hours, extending up to 25, which pull the mean upward compared to the median. This indicates that while typical listening behavior is moderate, a small group of heavy listeners significantly increases the spread.
 
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = factor(`Hours per day`))) +
+  geom_bar(fill = "purple") +
+  labs(title = "Hours per Day Responses",
+       x = "Hours per Day",
+       y = "Count")
+```
+The bar chart shows the exact values participants reported for hours spent listening to music each day. Most responses clustered around 1, 2, 3, and 4 hours, with 2 hours being the most common response. The gaps between many decimal values suggest that participants tended to report rounded estimates rather than precise listening times.
 
 
 #Anxiety Distribution
@@ -312,35 +320,9 @@ mxmh_survey_results %>%
 This chart compares median anxiety and depression scores side by side for each genre. It shows that some genres, like Lofi and Hip hop, have high median scores for both measures, while Gospel and Latin remain consistently low. Looking at both together highlights which genres are linked with higher or lower levels of mental health concerns, and using the median ensures the results are more representative of typical listeners rather than being skewed by outliers.
 
 
-# Relationships between variables
-
-Anxiety vs Depression
-
-```{r}
-ggplot(mxmh_survey_results,
-aes(x = Anxiety,
-y = Depression)) +
-geom_point(alpha = .4) +
-labs(title = "Anxiety vs Depression",
-x = "Anxiety",
-y = "Depression")
-
-```
-
-```{r}
-ggplot(mxmh_survey_results,
-       aes(x = Anxiety,
-           y = Depression)) +
-  geom_jitter(alpha = .4,
-              width = .2,
-              height = .2) +
-  labs(title = "Anxiety vs Depression",
-       x = "Anxiety",
-       y = "Depression")
-```
 # Looking at center and spread
 
-Age
+# Age
 ```{r}
 median(mxmh_survey_results$Age,
        na.rm = TRUE)
@@ -351,7 +333,7 @@ IQR(mxmh_survey_results$Age,
 The median age is 21 years, meaning half of participants are younger than 21 and half are older. The IQR is 10 years, indicating that the middle 50% of participants span a 10-year age range.
 
 
-Hours per day
+# Hours per day
 ```{r}
 median(mxmh_survey_results$`Hours per day`,
        na.rm = TRUE)
@@ -363,7 +345,7 @@ The median listening time is 3 hours per day. The IQR is 3 hours, indicating tha
 
 
 
-Anxiety 
+# Anxiety 
 ```{r}
 median(mxmh_survey_results$Anxiety,
        na.rm = TRUE)
@@ -373,7 +355,7 @@ IQR(mxmh_survey_results$Anxiety,
 ```
 The median anxiety score is 6. The IQR is 4, indicating that anxiety scores vary by about 4 points across the middle 50% of participants.
 
-Insomnia
+# Insomnia
 ```{r}
 median(mxmh_survey_results$Insomnia,
 na.rm = TRUE)
@@ -383,6 +365,8 @@ na.rm = TRUE)
 ```
 The median insomnia score is 3, meaning half of participants scored below 3 and half scored above 3. The IQR is 5, indicating that the middle 50% of participants  insomnia scores span 5 points.
 
+
+# OCD
 ```{r}
 median(mxmh_survey_results$OCD,
        na.rm = TRUE)
@@ -393,9 +377,21 @@ IQR(mxmh_survey_results$OCD,
 ```
 The median OCD score is 2, meaning half of participants scored below 2 and half scored above 2. The IQR is 5, indicating that the middle 50% of participants' OCD scores span 5 points.
 
+
+#Depression
+```{r}
+mean(mxmh_survey_results$Depression,
+     na.rm = TRUE)
+
+sd(mxmh_survey_results$Depression,
+   na.rm = TRUE)
+```
+Since the depression distribution appeared multimodal, the mean and standard deviation provide an additional way to summarize the data. The mean depression score was 4.80, indicating that participants reported moderate levels of depression on average. The standard deviation was 3.03, showing that depression scores varied considerably across participants, which is consistent with the multiple clusters observed in the histogram.
+
+
 #Looking at correlations 
 
-Anxiety and Insomnia
+#Anxiety and Insomnia
 ```{r}
 cor(mxmh_survey_results$Anxiety,
     mxmh_survey_results$Insomnia,
@@ -405,7 +401,7 @@ The correlation between anxiety and insomnia was 0.29, indicating a weak relatio
 
 
 
-Anxiety and depression
+#Anxiety and depression
 ```{r}
 cor(mxmh_survey_results$Anxiety,
     mxmh_survey_results$Depression,
@@ -413,7 +409,7 @@ cor(mxmh_survey_results$Anxiety,
 ```
 The correlation between anxiety and depression was 0.52, indicating a moderate positive relationship. This suggests that participants with higher anxiety scores also tended to report higher depression scores. 
 
-Depression and Insomnia
+#Depression and Insomnia
 ```{r}
 cor(mxmh_survey_results$Depression,
     mxmh_survey_results$Insomnia,
@@ -422,7 +418,7 @@ cor(mxmh_survey_results$Depression,
 The correlation between depression and insomnia was 0.38, indicating a weak to moderate positive relationship. Participants with higher depression scores tended to report higher insomnia scores, although the relationship was not as strong as the relationship between anxiety and depression.
 
 
-Depression and OCD
+#Depression and OCD
 ```{r}
 cor(mxmh_survey_results$Depression,
     mxmh_survey_results$OCD,
