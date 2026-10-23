@@ -312,4 +312,123 @@ mxmh_survey_results %>%
 This chart compares median anxiety and depression scores side by side for each genre. It shows that some genres, like Lofi and Hip hop, have high median scores for both measures, while Gospel and Latin remain consistently low. Looking at both together highlights which genres are linked with higher or lower levels of mental health concerns, and using the median ensures the results are more representative of typical listeners rather than being skewed by outliers.
 
 
+# Relationships between variables
+
+Anxiety vs Depression
+
+```{r}
+ggplot(mxmh_survey_results,
+aes(x = Anxiety,
+y = Depression)) +
+geom_point(alpha = .4) +
+labs(title = "Anxiety vs Depression",
+x = "Anxiety",
+y = "Depression")
+
+```
+
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = Anxiety,
+           y = Depression)) +
+  geom_jitter(alpha = .4,
+              width = .2,
+              height = .2) +
+  labs(title = "Anxiety vs Depression",
+       x = "Anxiety",
+       y = "Depression")
+```
+# Looking at center and spread
+
+Age
+```{r}
+median(mxmh_survey_results$Age,
+       na.rm = TRUE)
+
+IQR(mxmh_survey_results$Age,
+    na.rm = TRUE)
+```
+The median age is 21 years, meaning half of participants are younger than 21 and half are older. The IQR is 10 years, indicating that the middle 50% of participants span a 10-year age range.
+
+
+Hours per day
+```{r}
+median(mxmh_survey_results$`Hours per day`,
+       na.rm = TRUE)
+
+IQR(mxmh_survey_results$`Hours per day`,
+    na.rm = TRUE)
+```
+The median listening time is 3 hours per day. The IQR is 3 hours, indicating that the middle 50% of participants differ by about 3 hours of listening time.
+
+
+
+Anxiety 
+```{r}
+median(mxmh_survey_results$Anxiety,
+       na.rm = TRUE)
+
+IQR(mxmh_survey_results$Anxiety,
+    na.rm = TRUE)
+```
+The median anxiety score is 6. The IQR is 4, indicating that anxiety scores vary by about 4 points across the middle 50% of participants.
+
+Insomnia
+```{r}
+median(mxmh_survey_results$Insomnia,
+na.rm = TRUE)
+IQR(mxmh_survey_results$Insomnia,
+na.rm = TRUE)
+
+```
+The median insomnia score is 3, meaning half of participants scored below 3 and half scored above 3. The IQR is 5, indicating that the middle 50% of participants  insomnia scores span 5 points.
+
+```{r}
+median(mxmh_survey_results$OCD,
+       na.rm = TRUE)
+
+IQR(mxmh_survey_results$OCD,
+    na.rm = TRUE)
+
+```
+The median OCD score is 2, meaning half of participants scored below 2 and half scored above 2. The IQR is 5, indicating that the middle 50% of participants' OCD scores span 5 points.
+
+#Looking at correlations 
+
+Anxiety and Insomnia
+```{r}
+cor(mxmh_survey_results$Anxiety,
+    mxmh_survey_results$Insomnia,
+    use="complete.obs")
+```
+The correlation between anxiety and insomnia was 0.29, indicating a weak relationship. Participants with higher anxiety scores tended to report slightly higher insomnia scores. 
+
+
+
+Anxiety and depression
+```{r}
+cor(mxmh_survey_results$Anxiety,
+    mxmh_survey_results$Depression,
+    use = "complete.obs")
+```
+The correlation between anxiety and depression was 0.52, indicating a moderate positive relationship. This suggests that participants with higher anxiety scores also tended to report higher depression scores. 
+
+Depression and Insomnia
+```{r}
+cor(mxmh_survey_results$Depression,
+    mxmh_survey_results$Insomnia,
+    use = "complete.obs")
+```
+The correlation between depression and insomnia was 0.38, indicating a weak to moderate positive relationship. Participants with higher depression scores tended to report higher insomnia scores, although the relationship was not as strong as the relationship between anxiety and depression.
+
+
+Depression and OCD
+```{r}
+cor(mxmh_survey_results$Depression,
+    mxmh_survey_results$OCD,
+    use="complete.obs")
+```
+The correlation between depression and OCD was 0.20, indicating a weak positive relationship. Participants with higher depression scores were slightly more likely to report higher OCD scores, but the relationship was relatively small compared to the other mental health variables examined.
+
+
 
