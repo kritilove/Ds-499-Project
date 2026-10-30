@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
 library(tidyverse)
-
+library(nnet)
 ```
 
 
@@ -378,7 +378,7 @@ IQR(mxmh_survey_results$OCD,
 The median OCD score is 2, meaning half of participants scored below 2 and half scored above 2. The IQR is 5, indicating that the middle 50% of participants' OCD scores span 5 points.
 
 
-#Depression
+#Depression (looked at mean and s.d instead of median and range)
 ```{r}
 mean(mxmh_survey_results$Depression,
      na.rm = TRUE)
@@ -386,45 +386,291 @@ mean(mxmh_survey_results$Depression,
 sd(mxmh_survey_results$Depression,
    na.rm = TRUE)
 ```
-Since the depression distribution appeared multimodal, the mean and standard deviation provide an additional way to summarize the data. The mean depression score was 4.80, indicating that participants reported moderate levels of depression on average. The standard deviation was 3.03, showing that depression scores varied considerably across participants, which is consistent with the multiple clusters observed in the histogram.
+The mean depression score was 4.80, indicating that participants reported moderate levels of depression on average. The standard deviation was 3.03, showing that depression scores varied considerably across participants, which is consistent with the multiple clusters observed in the histogram.
 
 
 #Looking at correlations 
 
 #Anxiety and Insomnia
+
+Scatterplot of Anxiety and Insomnia
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = Anxiety,
+           y = Insomnia)) +
+  geom_jitter(width = 0.15,
+              height = 0.15,
+              alpha = 0.35,
+              color = "steelblue") +
+  geom_smooth(method = "lm",se = FALSE, color = "darkred") +
+  labs(title = "Anxiety and Insomnia",
+       x = "Anxiety Score",
+       y = "Insomnia Score")
+cor(mxmh_survey_results$Anxiety,
+    mxmh_survey_results$Insomnia,
+    use = "complete.obs") 
+```
 ```{r}
 cor(mxmh_survey_results$Anxiety,
     mxmh_survey_results$Insomnia,
     use="complete.obs")
 ```
-The correlation between anxiety and insomnia was 0.29, indicating a weak relationship. Participants with higher anxiety scores tended to report slightly higher insomnia scores. 
 
+The scatterplot shows a slight upward trend, but the points are widely spread. Together with the correlation of 0.29, this indicates a weak positive relationship, meaning participants with higher anxiety scores tended to report slightly higher insomnia scores, but the relationship was not strong.
 
 
 #Anxiety and depression
+
+Scatterplot of Anxiety and Depression
+
+```{r}
+
+ggplot(mxmh_survey_results,
+       aes(x = Anxiety,
+           y = Depression)) +
+  geom_jitter(width = 0.15,
+              height = 0.15,
+              alpha = 0.35,
+              color = "steelblue") +
+  geom_smooth(method = "lm",
+              se = FALSE,
+              color = "darkred") +
+  labs(title = "Anxiety and Depression",
+       x = "Anxiety Score",
+       y = "Depression Score")
+cor(mxmh_survey_results$Anxiety,
+    mxmh_survey_results$Depression,
+    use = "complete.obs")
+
+```
+
 ```{r}
 cor(mxmh_survey_results$Anxiety,
     mxmh_survey_results$Depression,
     use = "complete.obs")
 ```
-The correlation between anxiety and depression was 0.52, indicating a moderate positive relationship. This suggests that participants with higher anxiety scores also tended to report higher depression scores. 
+The scatterplot shows a noticeable upward trend between anxiety and depression. Together with the correlation of 0.52, this indicates a moderate positive relationship, meaning participants with higher anxiety scores tended to also report higher depression scores.
 
 #Depression and Insomnia
+
+Scatterplot of Depression and Insomnia
+
+```{r} 
+ggplot(mxmh_survey_results,
+       aes(x = Depression,
+           y = Insomnia)) +
+  geom_jitter(width = 0.15,
+              height = 0.15,
+              alpha = 0.35,
+              color = "steelblue") +
+  geom_smooth(method = "lm",
+              se = FALSE,
+              color = "darkred") +
+  labs(title = "Depression and Insomnia",
+       x = "Depression Score",
+       y = "Insomnia Score")
+cor(mxmh_survey_results$Depression,
+    mxmh_survey_results$Insomnia,
+    use = "complete.obs")
+```
 ```{r}
 cor(mxmh_survey_results$Depression,
     mxmh_survey_results$Insomnia,
     use = "complete.obs")
 ```
-The correlation between depression and insomnia was 0.38, indicating a weak to moderate positive relationship. Participants with higher depression scores tended to report higher insomnia scores, although the relationship was not as strong as the relationship between anxiety and depression.
 
+The scatterplot shows a positive upward trend between depression and insomnia, although the points are fairly spread out. The correlation of 0.38 indicates a weak to moderate positive relationship, meaning higher depression scores tended to occur with higher insomnia scores.
 
 #Depression and OCD
+Scatterplot of Depression and OCD
+
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = Depression,
+           y = OCD)) +
+  geom_jitter(width = 0.15,
+              height = 0.15,
+              alpha = 0.35,
+              color = "steelblue") +
+  geom_smooth(method = "lm",
+              se = FALSE,
+              color = "darkred") +
+  labs(title = "Depression and OCD",
+       x = "Depression Score",
+       y = "OCD Score")
+cor(mxmh_survey_results$Depression,
+    mxmh_survey_results$OCD,
+    use = "complete.obs")
+```
+
 ```{r}
 cor(mxmh_survey_results$Depression,
     mxmh_survey_results$OCD,
     use="complete.obs")
 ```
-The correlation between depression and OCD was 0.20, indicating a weak positive relationship. Participants with higher depression scores were slightly more likely to report higher OCD scores, but the relationship was relatively small compared to the other mental health variables examined.
+The scatterplot shows only a slight upward trend between depression and OCD, with the points widely spread. The correlation of 0.20 indicates a weak positive relationship, meaning higher depression scores were associated with only slightly higher OCD scores.
+
+#Predicting effect on mood
+
+Before building a model, I first looked at how participants responded to the Music effects
+
+ #Looking at the Music effects groups
+
+```{r}
+table(mxmh_survey_results$`Music effects`, useNA = "ifany")
+```
+Most participants reported that music improved their mood, with 542 responses compared to 169 reporting no effect and only 17 reporting that music worsened their mood. The groups are uneven in size, especially the Worsen group, which is important to consider when comparing the groups and building a prediction model. 
+
+ #Depression Scores by Music effect
+ 
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = `Music effects`,
+           y = Depression,
+           fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "Depression Scores by Music Effect",
+       x = "Music Effect",
+       y = "Depression Score")
+```
+Depression scores appear to differ across reported music effects. Participants who reported that music worsened their mood had a higher median depression score than those who reported improvement or no effect. However, only 17 participants were in the Worsen group, so this difference should be interpreted carefully.
+
+#Depression summary statistics by Music Effect
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  group_by(`Music effects`) %>%
+  summarise(
+    count = n(),
+    mean_depression = mean(Depression, na.rm = TRUE),
+    sd_depression = sd(Depression, na.rm = TRUE),
+    median_depression = median(Depression, na.rm = TRUE),
+    IQR_depression = IQR(Depression, na.rm = TRUE)
+  )
+```
+
+Depression scores were highest among participants who reported that music worsened their mood. This group had a median depression score of 8 and a mean of 7.18, compared with a median of 5 for the Improve group and 4 for the No effect group. All three groups had an IQR of 5, but the Worsen group only included 17 participant.
+
+# Anxiety Scores by Music Effect
+
+Anxiety scores by reported music effect
+
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = `Music effects`,
+           y = Anxiety,
+           fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "Anxiety Scores by Music Effect",
+       x = "Music Effect",
+       y = "Anxiety Score")
+```
+The box plot shows that anxiety scores vary across the different reported music effects. Participants who reported that music worsens their mood have a median anxiety score of about 7, and those who reported that music improves their mood also have a median around 7. The no effect group has a lower median anxiety score of about 5. Overall, the groups overlap quite a bit, so anxiety scores alone do not clearly separate the music-effect groups.
 
 
 
+ #Anxiety summary statistics by Music Effect
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  group_by(`Music effects`) %>%
+  summarise(
+    count = n(),
+    mean_anxiety = mean(Anxiety, na.rm = TRUE),
+    sd_anxiety = sd(Anxiety, na.rm = TRUE),
+    median_anxiety = median(Anxiety, na.rm = TRUE),
+    IQR_anxiety = IQR(Anxiety, na.rm = TRUE)
+  )
+```
+
+Anxiety scores were lower among participants who reported that music had no effect on their mood. The No effect group had a median anxiety score of 5, compared with 7 for both the Improve and Worsen groups. The Improve and Worsen groups also had slightly smaller IQRs, although the Worsen group only contained 17 participants and should be interpreted carefully.
+
+Insomnia Scores by Music Effect
+# Insomnia scores by reported music effect
+
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = `Music effects`,
+           y = Insomnia,
+           fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "Insomnia Scores by Music Effect",
+       x = "Music Effect",
+       y = "Insomnia Score")
+```
+
+The boxplot shows that insomnia scores are very similar for participants who reported that music had no effect and those who reported that music improved their mood. Participants in the Worsen group appear to have slightly higher insomnia scores, although this group contains far fewer participants.
+
+
+# Insomnia summary statistics by Music Effect
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  group_by(`Music effects`) %>%
+  summarise(
+    count = n(),
+    mean_insomnia = mean(Insomnia, na.rm = TRUE),
+    sd_insomnia = sd(Insomnia, na.rm = TRUE),
+    median_insomnia = median(Insomnia, na.rm = TRUE),
+    IQR_insomnia = IQR(Insomnia, na.rm = TRUE)
+  )
+```
+
+Insomnia scores were very similar between participants who reported no effect and those who reported improvement, with both groups having a median of 3 and an IQR of 5. The Worsen group had a slightly higher median of 4, but because this group only includes 17 participants. Overall, insomnia does not appear to separate the music effect groups as clearly as depression or anxiety.
+
+
+OCD Scores by Music Effect
+# OCD scores by reported music effect
+```{r}
+ggplot(mxmh_survey_results,
+       aes(x = `Music effects`,
+           y = OCD,
+           fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "OCD Scores by Music Effect",
+       x = "Music Effect",
+       y = "OCD Score")
+```
+OCD scores look fairly similar across all three music effect groups, with the No effect group showing a slightly lower median. The large amount of overlap suggests that OCD may not strongly distinguish how participants report music affecting their mood.
+
+
+# OCD summary statistics by Music Effect
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  group_by(`Music effects`) %>%
+  summarise(
+    count = n(),
+    mean_OCD = mean(OCD, na.rm = TRUE),
+    sd_OCD = sd(OCD, na.rm = TRUE),
+    median_OCD = median(OCD, na.rm = TRUE),
+    IQR_OCD = IQR(OCD, na.rm = TRUE)
+  )
+```
+
+OCD scores were fairly similar across the music effect groups. The No effect group had a median of 1, while both the Improve and Worsen groups had a median of 2, suggesting that OCD may not strongly distinguish reported music effects.
+
+# Summary of group comparisions
+Depression and anxiety showed the clearest differences across the music effect groups. Insomnia and OCD scores were more similar across the groups, suggesting that they may be less useful for predicting participants’ reported music effects. Because the Worsen group only contains 17 participants, all comparisons involving that group should be interpreted carefully.
+
+
+# Starting the Prediction Model
+Based on the boxplots and summary statistics, depression and anxiety showed the clearest differences across the music effect groups. I started with depression by itself before adding other predictors to see whether depression helps predict how participants report music affecting their mood.
+
+```{r}
+mxmh_survey_results$`Music effects` <- factor(mxmh_survey_results$`Music effects`,
+         levels = c("No effect", "Improve", "Worsen"))
+```
+# First model using Depression only
+
+```{r}
+model_depression <- multinom(
+  `Music effects` ~ Depression,
+  data = mxmh_survey_results
+)
+summary(model_depression)
+```
