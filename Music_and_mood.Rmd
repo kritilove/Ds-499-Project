@@ -521,6 +521,8 @@ table(mxmh_survey_results$`Music effects`, useNA = "ifany")
 ```
 Most participants reported that music improved their mood, with 542 responses compared to 169 reporting no effect and only 17 reporting that music worsened their mood. The groups are uneven in size, especially the Worsen group, which is important to consider when comparing the groups and building a prediction model. 
 
+
+
  #Depression Scores by Music effect
  
 ```{r}
@@ -533,7 +535,22 @@ ggplot(mxmh_survey_results,
        x = "Music Effect",
        y = "Depression Score")
 ```
-Depression scores appear to differ across reported music effects. Participants who reported that music worsened their mood had a higher median depression score than those who reported improvement or no effect. However, only 17 participants were in the Worsen group, so this difference should be interpreted carefully.
+
+# Depression scores by Music Effect (excluding missing responses)
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = `Music effects`,
+             y = Depression,
+             fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "Depression Scores by Music Effect",
+       x = "Music Effect",
+       y = "Depression Score")
+```
+Depression scores appear to differ across reported music effects. Participants who reported that music worsened their mood had a higher median depression score than those who reported improvement or no effect.
+
 
 #Depression summary statistics by Music Effect
 
@@ -552,6 +569,25 @@ mxmh_survey_results %>%
 
 Depression scores were highest among participants who reported that music worsened their mood. This group had a median depression score of 8 and a mean of 7.18, compared with a median of 5 for the Improve group and 4 for the No effect group. All three groups had an IQR of 5, but the Worsen group only included 17 participant.
 
+
+#Depression scores and reported Music Effect (treated as categorical variable)
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = factor(Depression),
+             fill = `Music effects`)) +
+  geom_bar(position = "fill") +
+  labs(title = "Music Effects by Depression Score",
+       x = "Depression Score",
+       y = "Proportion",
+       fill = "Music Effect")
+```
+
+
+Music improvement was the most common response across nearly all depression scores. The proportion reporting that music worsened their mood appears larger among some of the highest depression scores, especially 9 and 10, but the Worsen group is small, so this pattern should be interpreted carefully.
+
+
 # Anxiety Scores by Music Effect
 
 Anxiety scores by reported music effect
@@ -566,6 +602,24 @@ ggplot(mxmh_survey_results,
        x = "Music Effect",
        y = "Anxiety Score")
 ```
+# OCD scores by Music Effect, excluding missing responses
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = `Music effects`,
+             y = OCD,
+             fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "OCD Scores by Music Effect",
+       x = "Music Effect",
+       y = "OCD Score")
+```
+
+OCD scores look fairly similar across all three music effect groups, with the No effect group showing a slightly lower median. The large amount of overlap suggests that OCD may not strongly distinguish how participants report music affecting their mood.
+
+
+
 The box plot shows that anxiety scores vary across the different reported music effects. Participants who reported that music worsens their mood have a median anxiety score of about 7, and those who reported that music improves their mood also have a median around 7. The no effect group has a lower median anxiety score of about 5. Overall, the groups overlap quite a bit, so anxiety scores alone do not clearly separate the music-effect groups.
 
 
@@ -587,6 +641,22 @@ mxmh_survey_results %>%
 
 Anxiety scores were lower among participants who reported that music had no effect on their mood. The No effect group had a median anxiety score of 5, compared with 7 for both the Improve and Worsen groups. The Improve and Worsen groups also had slightly smaller IQRs, although the Worsen group only contained 17 participants and should be interpreted carefully.
 
+ # Anxiety scores by reported music effect( categorical)
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = factor(Anxiety),
+             fill = `Music effects`)) +
+  geom_bar(position = "fill") +
+  labs(title = "Music Effects by Anxiety Score",
+       x = "Anxiety Score",
+       y = "Proportion",
+       fill = "Music Effect")
+```
+
+Music improvement was the most common response across most anxiety scores. Participants with lower anxiety scores showed a larger proportion of No effect responses, while higher anxiety scores generally showed a larger proportion reporting improvement, although the pattern is not perfectly consistent.
+
+
 Insomnia Scores by Music Effect
 # Insomnia scores by reported music effect
 
@@ -595,6 +665,20 @@ ggplot(mxmh_survey_results,
        aes(x = `Music effects`,
            y = Insomnia,
            fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "Insomnia Scores by Music Effect",
+       x = "Music Effect",
+       y = "Insomnia Score")
+```
+
+# Insomnia scores by Music Effect, excluding missing responses
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = `Music effects`,
+             y = Insomnia,
+             fill = `Music effects`)) +
   geom_boxplot() +
   labs(title = "Insomnia Scores by Music Effect",
        x = "Music Effect",
@@ -621,6 +705,21 @@ mxmh_survey_results %>%
 
 Insomnia scores were very similar between participants who reported no effect and those who reported improvement, with both groups having a median of 3 and an IQR of 5. The Worsen group had a slightly higher median of 4, but because this group only includes 17 participants. Overall, insomnia does not appear to separate the music effect groups as clearly as depression or anxiety.
 
+#Insomnia scores by Music Effect(as categories)
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = factor(Insomnia),
+             fill = `Music effects`)) +
+  geom_bar(position = "fill") +
+  labs(title = "Music Effects by Insomnia Score",
+       x = "Insomnia Score",
+       y = "Proportion",
+       fill = "Music Effect")
+```
+
+Music improvement was the most common response across nearly all insomnia scores. The proportions were fairly similar across most scores, with no clear increasing or decreasing pattern, suggesting that insomnia may not strongly distinguish participants’ reported music effects.
 
 OCD Scores by Music Effect
 # OCD scores by reported music effect
@@ -629,6 +728,20 @@ ggplot(mxmh_survey_results,
        aes(x = `Music effects`,
            y = OCD,
            fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "OCD Scores by Music Effect",
+       x = "Music Effect",
+       y = "OCD Score")
+```
+
+# OCD scores by Music Effect, excluding missing responses
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = `Music effects`,
+             y = OCD,
+             fill = `Music effects`)) +
   geom_boxplot() +
   labs(title = "OCD Scores by Music Effect",
        x = "Music Effect",
@@ -654,23 +767,202 @@ mxmh_survey_results %>%
 
 OCD scores were fairly similar across the music effect groups. The No effect group had a median of 1, while both the Improve and Worsen groups had a median of 2, suggesting that OCD may not strongly distinguish reported music effects.
 
+
+# OCD scores by Music Effect (as categories)
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = factor(OCD),
+             fill = `Music effects`)) +
+  geom_bar(position = "fill") +
+  labs(title = "Music Effects by OCD Score",
+       x = "OCD Score",
+       y = "Proportion",
+       fill = "Music Effect")
+```
+Music improvement was the most common response across nearly all OCD scores. The proportions varied across scores without a clear increasing or decreasing pattern, suggesting that OCD may not strongly distinguish participants reported music effects.
+
+
 # Summary of group comparisions
 Depression and anxiety showed the clearest differences across the music effect groups. Insomnia and OCD scores were more similar across the groups, suggesting that they may be less useful for predicting participants’ reported music effects. Because the Worsen group only contains 17 participants, all comparisons involving that group should be interpreted carefully.
 
 
-# Starting the Prediction Model
-Based on the boxplots and summary statistics, depression and anxiety showed the clearest differences across the music effect groups. I started with depression by itself before adding other predictors to see whether depression helps predict how participants report music affecting their mood.
+#Exploring Other Possible Predictors
+Before building the model, I looked at other variables that may help predict whether participants report that music improves their mood.
+
+Hours per Day by Music Effect
+# Compare listening time across Music Effect groups
 
 ```{r}
-mxmh_survey_results$`Music effects` <- factor(mxmh_survey_results$`Music effects`,
-         levels = c("No effect", "Improve", "Worsen"))
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = `Music effects`,
+             y = `Hours per day`,
+             fill = `Music effects`)) +
+  geom_boxplot() +
+  labs(title = "Hours of Music per Day by Music Effect",
+       x = "Music Effect",
+       y = "Hours per Day")
 ```
-# First model using Depression only
+Participants who reported that music improved their mood appear to listen to slightly more music per day, with a median around 3 hours compared with about 2 hours for the No effect and Worsen groups. However, the groups still overlap considerably, so Hours per Day alone may not strongly distinguish reported music effects.
+
+# Hours per Day summary statistics by Music Effect
 
 ```{r}
-model_depression <- multinom(
-  `Music effects` ~ Depression,
-  data = mxmh_survey_results
-)
-summary(model_depression)
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  group_by(`Music effects`) %>%
+  summarise(
+    count = n(),
+    mean_hours = mean(`Hours per day`, na.rm = TRUE),
+    sd_hours = sd(`Hours per day`, na.rm = TRUE),
+    median_hours = median(`Hours per day`, na.rm = TRUE),
+    IQR_hours = IQR(`Hours per day`, na.rm = TRUE))
 ```
+
+Participants who reported that music improved their mood had a slightly higher median listening time of 3 hours per day, compared with 2 hours for both the No effect and Worsen groups. The differences are relatively small and the groups overlap, so Hours per Day may provide some information but does not strongly separate the Music Effect groups by itself.
+
+
+# While Working and reported Music Effect
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`),
+         !is.na(`While working`)) %>%
+  ggplot(aes(x = `While working`,
+             fill = `Music effects`)) +
+  geom_bar(position = "fill") +
+  labs(title = "Music Effects by Listening While Working",
+       x = "Listen While Working",
+       y = "Proportion",
+       fill = "Music Effect")
+```
+Participants who listened to music while working had a noticeably larger proportion reporting that music improved their mood compared with those who did not listen while working. Participants who did not listen while working were more likely to report that music had no effect, suggesting that listening while working may be useful to explore as a predictor of reported music effects.
+
+
+# Favorite Genre and reported Music Effect
+
+```{r}
+mxmh_survey_results %>%
+  filter(!is.na(`Music effects`)) %>%
+  ggplot(aes(x = `Fav genre`,
+             fill = `Music effects`)) +
+  geom_bar(position = "fill") +
+  labs(title = "Music Effects by Favorite Genre",
+       x = "Favorite Genre",
+       y = "Proportion",
+       fill = "Music Effect") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Music improvement was the most common response across every favorite genre. Some genres appeared to have different proportions of No effect and Worsen responses, but several genre groups had very few participants, so these differences should be interpreted carefully.
+
+
+#Creating Binary Music Effect Response
+
+To prepare for binary logistic regression, I combined participants who reported No effect or Worsen into one No improvement group, while keeping Improve as its own group.
+
+ #Combine Music Effect into two groups for logistic regression
+
+```{r}
+mxmh_survey_results <- mxmh_survey_results %>%
+  mutate(
+    `Music improvement` = case_when(
+      `Music effects` == "Improve" ~ "Improve",
+      `Music effects` %in% c("No effect", "Worsen") ~ "No improvement",
+      TRUE ~ NA_character_
+    )
+  )
+```
+# Check the new response groups
+```{r}
+table(mxmh_survey_results$`Music improvement`,
+      useNA = "ifany")
+```
+The new response variable contains 542 participants in the Improve group and 186 in the No improvement group, with 8 missing responses. This binary outcome will be used for the logistic regression model.
+
+
+#Binary Logistic Regression
+
+I started with Depression as the first predictor because Depression showed noticeable differences across the Music Effect groups during the exploratory analysis.
+
+# Set the new response as a factor
+```{r}
+mxmh_survey_results$`Music improvement` <-
+  factor(mxmh_survey_results$`Music improvement`,
+         levels = c("No improvement", "Improve"))
+```
+
+# First binary logistic regression using Depression
+```{r}
+model_1 <- glm(
+  `Music improvement` ~ Depression,
+  data = mxmh_survey_results,
+  family = binomial)
+summary(model_1)
+```
+In the first logistic regression model, Depression was not a significant predictor of whether participants reported music improving their mood (p = 0.376).
+
+
+#Model 2: Adding Anxiety
+Since Anxiety also showed differences across the Music improvement groups, I added Anxiety to the Depression model to see whether it provides additional information for predicting reported music improvement.
+
+```{r}
+model_2 <- glm(
+  `Music improvement` ~ Depression + Anxiety,
+  data = mxmh_survey_results,
+  family = binomial)
+summary(model_2)
+```
+Model 2 showed that Anxiety was a statistically significant predictor of reported music improvement (p = 0.001), while Depression remained non-significant (p = 0.343). Higher anxiety scores were associated with higher odds of reporting Improve rather than No improvement.
+
+# Model 3: Depression + Anxiety + While Working
+Since listening while working showed a noticeable difference in reported music improvement, I added While Working to the Depression and Anxiety model.
+
+```{r}
+model_3 <- glm(
+  `Music improvement` ~ Depression + Anxiety + `While working`,
+  data = mxmh_survey_results,
+  family = binomial)
+summary(model_3)
+```
+Model 3 showed that Anxiety and listening while working were statistically significant predictors of reported music improvement. Higher anxiety scores and listening to music while working were associated with higher odds of reporting Improve, while Depression remained non-significant.
+
+#Model 4: Adding Hours per Day
+Since Hours per Day showed a small difference across the Music Effect groups, I added it to the model to see whether listening time provides additional information for predicting music improvement.
+
+```{r}
+model_4 <- glm( `Music improvement` ~ Depression + Anxiety + `While working` + `Hours per day`,
+  data = mxmh_survey_results,
+  family = binomial)
+summary(model_4)
+```
+Model 4 showed that Anxiety and listening while working remained statistically significant predictors of reported music improvement. Depression and Hours per Day were not significant, suggesting that listening time did not add much predictive information after accounting for the other variables.
+
+# Comparing the Logistic Regression Models
+```{r}
+AIC(model_1, model_2, model_3, model_4)
+```
+Model 3 had a lower AIC than Model 4 (800.62 compared with 802.48), suggesting that adding Hours per Day did not improve the model enough to justify the additional predictor. Combined with its non-significant p-value, this suggests that Hours per Day may not be useful to keep in the final model.
+
+
+Model 5: Anxiety and Listening While Working
+Since Anxiety and While Working remained significant in the previous models, I created a simpler model using only these two predictors.
+
+# Model 5: Anxiety + While Working
+
+```{r}
+model_5 <- glm(
+  `Music improvement` ~ Anxiety + `While working`,
+  data = mxmh_survey_results,
+  family = binomial)
+summary(model_5)
+```
+Model 5 showed that Anxiety and listening while working were both statistically significant predictors of reported music improvement. Model 5 also had a slightly lower AIC than Model 3, suggesting that removing Depression created a simpler model without the reducing model fit.
+
+#Comparing Model 3 and Model 5
+```{r}
+AIC(model_3, model_5)
+```
+
+Model 3 and Model 5 had very similar AIC values (800.62 and 800.35). Since Model 5 uses fewer predictors and Depression was not statistically significant in Model 3, Model 5 provides a simpler model with similar fit.
