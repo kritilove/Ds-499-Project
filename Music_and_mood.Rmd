@@ -584,9 +584,7 @@ mxmh_survey_results %>%
        fill = "Music Effect")
 ```
 
-
-Music improvement was the most common response across nearly all depression scores. The proportion reporting that music worsened their mood appears larger among some of the highest depression scores, especially 9 and 10, but the Worsen group is small, so this pattern should be interpreted carefully.
-
+Music improvement was the most common response across nearly all depression scores. The proportion reporting that music worsened their mood appears larger among some of the highest depression scores, especially 9 and 10.
 
 # Anxiety Scores by Music Effect
 
@@ -966,3 +964,141 @@ AIC(model_3, model_5)
 ```
 
 Model 3 and Model 5 had very similar AIC values (800.62 and 800.35). Since Model 5 uses fewer predictors and Depression was not statistically significant in Model 3, Model 5 provides a simpler model with similar fit.
+
+
+#Training and Testing the Models
+Before fitting the final prediction models, I created a separate modeling dataset using the regrouped Music improvement response. 
+
+# Creating the modeling dataset
+```{r}
+model_data <- mxmh_survey_results %>%
+  filter(!is.na(`Music improvement`))
+table(model_data$`Music improvement`)
+```
+The modeling dataset contains 542 participants in the Improve group and 186 participants in the No improvement group, for a total of 728 participants.
+
+80/20 Training and Testing Split
+# Split modeling data into 80% training and 20% testing
+```{r}
+set.seed(123)
+train_index <- sample(
+  1:nrow(model_data),
+  size = 0.80 * nrow(model_data))
+
+train_data <- model_data[train_index, ]
+
+test_data <- model_data[-train_index, ]
+# Check training and testing sizes
+
+nrow(train_data)
+nrow(test_data)
+
+table(train_data$`Music improvement`)
+table(test_data$`Music improvement`)
+```
+The cleaned modeling data were randomly split into 582 training observations and 146 testing observations, using approximately 80% of the data for model development and 20% for evaluating predictions on unseen observations.
+
+
+# Full logistic model using training data only
+
+```{r}
+full_model <- glm(
+  `Music improvement` ~ Age + `Hours per day` + `While working` +
+    `Fav genre` + Anxiety + Depression + Insomnia + OCD,
+  data = train_data,
+  family = binomial
+)
+
+summary(full_model)
+```
+In the full training model, Anxiety and listening while working were statistically significant predictors of reported music improvement. Age, Hours per Day, Depression, Insomnia, OCD, and Favorite Genre did not show clear individual effects in this model.
+
+Backward Selection
+Some predictor variables contained missing values, so I created a complete version of the training data to make sure each model being compared used the same participants.
+
+```{r}
+train_complete <- train_data %>%
+  filter(
+    !is.na(Age),
+    !is.na(`Hours per day`),
+    !is.na(`While working`),
+    !is.na(`Fav genre`),
+    !is.na(Anxiety),
+    !is.na(Depression),
+    !is.na(Insomnia),
+    !is.na(OCD)
+  )
+
+nrow(train_complete)
+```
+# Refit full model using complete training data
+
+```{r} 
+full_model_complete <- glm(
+  `Music improvement` ~ Age + `Hours per day` + `While working` +
+    `Fav genre` + Anxiety + Depression + Insomnia + OCD,
+  data = train_complete,
+  family = binomial
+)
+# Perform backward selection
+
+backward_model <- step(
+  full_model_complete,
+  direction = "backward"
+)
+
+summary(backward_model)
+```
+
+Backward selection reduced the full training model to Anxiety and Listening While Working. Both predictors remained statistically significant, suggesting that these two variables provided the most useful information for predicting reported music improvement among the predictors included in the full model.
+
+
+# Keep complete test observations for the final model
+
+```{r}
+test_complete <- test_data %>%
+  filter(
+    !is.na(Anxiety),
+    !is.na(`While working`))
+
+nrow(test_complete)
+```
+
+# Predict probabilities
+
+```{r}
+test_prob <- predict(
+  backward_model,
+  newdata = test_complete,
+  type = "response")
+```
+
+# Convert probabilities into predicted groups
+
+```{r}
+test_prediction <- ifelse(
+  test_prob >= 0.50,
+  "Improve",
+  "No improvement")
+```
+# Confusion matrix
+
+```{r}
+confusion_matrix <- table(
+  Predicted = test_prediction,
+  Actual = test_complete$`Music improvement`)
+
+confusion_matrix
+```
+# Accuracy
+```{r}
+accuracy <- mean(
+  test_prediction == test_complete$`Music improvement`)
+
+accuracy
+```
+The backward-selected model had an overall test accuracy of 72.4%. However, the confusion matrix showed that the model predicted Improve for almost every participant and correctly identified only 1 of the 41 actual No improvement cases. This suggests that overall accuracy alone overstates the model's predictive ability because the outcome groups are imbalanced.
+
+
+
+
