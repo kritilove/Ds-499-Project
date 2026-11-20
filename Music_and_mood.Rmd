@@ -1049,56 +1049,249 @@ backward_model <- step(
 
 summary(backward_model)
 ```
-
 Backward selection reduced the full training model to Anxiety and Listening While Working. Both predictors remained statistically significant, suggesting that these two variables provided the most useful information for predicting reported music improvement among the predictors included in the full model.
 
 
-# Keep complete test observations for the final model
+#Evaluating Model Performance
+I evaluated the backward-selected model using a confusion matrix to compare the model's predicted classifications with the actual Music improvement responses.
+
+```{r}
+library(caret)
+```
+#testing observations
 
 ```{r}
 test_complete <- test_data %>%
   filter(
     !is.na(Anxiety),
-    !is.na(`While working`))
-
-nrow(test_complete)
+    !is.na(`While working`)
+  )
 ```
-
-# Predict probabilities
+# Generate predicted probabilities
 
 ```{r}
-test_prob <- predict(
+pred <- predict(
   backward_model,
-  newdata = test_complete,
-  type = "response")
+  test_complete,
+  type = "response"
+)
+# Classify predicted probabilities as Improve (1) or No improvement (0)
+
+pred_num <- ifelse(
+  pred > 0.5,
+  1,
+  0
+)
+
+pred_num <- factor(
+  pred_num,
+  levels = c(0, 1)
+)
+# Convert the actual Music improvement responses to 0/1
+
+actual_num <- ifelse(
+  test_complete$`Music improvement` == "Improve",
+  1,
+  0)
+
+actual_num <- factor(
+  actual_num,
+  levels = c(0, 1)
+)
+# Evaluate model performance
+
+confusionMatrix(
+  pred_num,
+  actual_num,
+  positive = "1"
+)
 ```
 
-# Convert probabilities into predicted groups
+The model had an overall accuracy of 72.4%, but the confusion matrix showed that this value does not fully represent its predictive performance. Sensitivity was 100%, meaning the model correctly classified all participants who reported Improve. However, specificity was only 2.4%, meaning the model correctly classified only 1 of the 41 participants who reported No improvement. The balanced accuracy was 51.2%, showing that the model performed very differently across the two response groups.
+
+The No Information Rate was 71.7%, which is very close to the model's 72.4% accuracy. This suggests that the model provides little improvement over simply predicting the majority Improve category for nearly every participant.
+
+#Full Model Performance on Testing Data 
+I evaluated the full logistic regression model on the testing data using the same confusion matrix approach so its predictive performance could be compared with the backward-selected model.
 
 ```{r}
-test_prediction <- ifelse(
-  test_prob >= 0.50,
-  "Improve",
-  "No improvement")
+test_full_complete <- test_data %>%
+  filter(
+    !is.na(Age),
+    !is.na(`Hours per day`),
+    !is.na(`While working`),
+    !is.na(`Fav genre`),
+    !is.na(Anxiety),
+    !is.na(Depression),
+    !is.na(Insomnia),
+    !is.na(OCD)
+  )
+
+nrow(test_full_complete)
 ```
-# Confusion matrix
+# Generate predicted probabilities from the full model
+```{r}
+full_pred <- predict(
+  full_model_complete,
+  test_full_complete,
+  type = "response"
+)
+
+# Converting predicted probabilities into 0/1 classifications
+
+full_pred_num <- ifelse(
+  full_pred > 0.5,
+  1,
+  0)
+
+full_pred_num <- factor(
+  full_pred_num,
+  levels = c(0, 1)
+)
+# Convert actual responses into 0/1
+
+full_actual_num <- ifelse(
+  test_full_complete$`Music improvement` == "Improve",
+  1,
+  0
+)
+
+full_actual_num <- factor(
+  full_actual_num,
+  levels = c(0, 1)
+)
+```
+# Evaluate full model performance
+```{r}
+confusionMatrix(
+  full_pred_num,
+  full_actual_num,
+  positive = "1")
+```
+
+The full logistic regression model had an overall test accuracy of 70.3%. Its sensitivity was 95.2%, meaning it correctly identified 99 of the 104 participants who reported Improve. Its specificity was only 7.3%, meaning it correctly identified 3 of the 41 participants who reported No improvement. The balanced accuracy was 51.3%, showing that the full model also struggled to distinguish the two response groups.
+
+Since both logistic regression models had difficulty distinguishing the No improvement group, I explored a Random Forest model using the default settings to see whether it improved predictive performance.
 
 ```{r}
-confusion_matrix <- table(
-  Predicted = test_prediction,
-  Actual = test_complete$`Music improvement`)
-
-confusion_matrix
+library(ranger)
 ```
-# Accuracy
+# Create Random Forest training data with simpler column names
+
 ```{r}
-accuracy <- mean(
-  test_prediction == test_complete$`Music improvement`)
-
-accuracy
+rf_train <- train_complete %>%
+  select(
+    `Music improvement`,
+    Age,
+    `Hours per day`,
+    `While working`,
+    `Fav genre`,
+    Anxiety,
+    Depression,
+    Insomnia,
+    OCD
+  ) %>%
+  rename(
+    Music_improvement = `Music improvement`,
+    Hours_per_day = `Hours per day`,
+    While_working = `While working`,
+    Fav_genre = `Fav genre`
+  )
 ```
-The backward-selected model had an overall test accuracy of 72.4%. However, the confusion matrix showed that the model predicted Improve for almost every participant and correctly identified only 1 of the 41 actual No improvement cases. This suggests that overall accuracy alone overstates the model's predictive ability because the outcome groups are imbalanced.
+# Fit Random Forest using training data
 
+```{r}
+set.seed(123)
 
+rf_model <- ranger(
+  Music_improvement ~ Age + Hours_per_day + While_working +
+    Fav_genre + Anxiety + Depression + Insomnia + OCD,
+  data = rf_train,
+  respect.unordered.factors = "order"
+)
+```
 
+```{r}
+rf_model
+```
+
+Random Forest Performance on Testing Data
+I evaluated the Random Forest model on the testing data to compare its predictive performance with the logistic regression models.
+
+# Preparing testing data for Random Forest
+
+```{r} 
+rf_test <- test_full_complete %>%
+  select(
+    `Music improvement`,
+    Age,
+    `Hours per day`,
+    `While working`,
+    `Fav genre`,
+    Anxiety,
+    Depression,
+    Insomnia,
+    OCD
+  ) %>%
+  rename(
+    Music_improvement = `Music improvement`,
+    Hours_per_day = `Hours per day`,
+    While_working = `While working`,
+    Fav_genre = `Fav genre`
+  )
+```
+
+Random Forest Performance on Testing Data
+I evaluated the Random Forest model on the testing data to see how well it classified new observations.
+
+#Testing data
+
+```{r}
+rf_test <- test_full_complete %>%
+  select(
+    `Music improvement`,
+    Age,
+    `Hours per day`,
+    `While working`,
+    `Fav genre`,
+    Anxiety,
+    Depression,
+    Insomnia,
+    OCD
+  ) %>%
+  rename(
+    Music_improvement = `Music improvement`,
+    Hours_per_day = `Hours per day`,
+    While_working = `While working`,
+    Fav_genre = `Fav genre`
+  )
+```
+# Predict the testing observations
+
+```{r}
+rf_pred <- predict(
+  rf_model,
+  data = rf_test)
+rf_pred$predictions
+```
+
+# Random Forest Confusion Matrix
+```{r}
+rf_actual <- factor(
+  rf_test$Music_improvement,
+  levels = c("No improvement", "Improve")
+)
+
+rf_predictions <- factor(
+  rf_pred$predictions,
+  levels = c("No improvement", "Improve")
+)
+
+confusionMatrix(
+  rf_predictions,
+  rf_actual,
+  positive = "Improve"
+)
+```
+The default Random Forest had an overall test accuracy of 66.9%, sensitivity of 91.3%, specificity of 4.9%, and balanced accuracy of 48.1%. It correctly identified 95 of 104 Improve cases but only 2 of 41 No improvement cases. Therefore, the default Random Forest did not improve classification performance compared with the logistic regression models and continued to struggle with the No improvement group.
 
